@@ -1,0 +1,19 @@
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+
+# Node.js dependencies
+node_modules/
+
+# Python virtual environments and cache
+venv/
+__pycache__/
+*.pyc
+
+# Build files
+dist/
+
+# Local databases & build output
+hospital-waste-dashboard/instance/
+*.local
