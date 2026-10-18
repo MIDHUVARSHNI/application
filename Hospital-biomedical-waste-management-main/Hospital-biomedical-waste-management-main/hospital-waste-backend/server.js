@@ -19,18 +19,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/biowaste_db';
 
-function sanitizeMongoUri(uri) {
-  return String(uri || '').replace(/\/\/([^:]+):([^@]+)@/, '//$1:****@');
-}
-
-if (process.env.NODE_ENV === 'production') {
-  if (!process.env.JWT_SECRET) {
-    console.error('SECURITY WARNING: JWT_SECRET environment variable is missing in production.');
-  }
-  if (!process.env.MONGO_URI) {
-    console.error('CONFIGURATION WARNING: MONGO_URI is missing in production; default local MongoDB URI will likely fail.');
-  }
-} else if (!process.env.JWT_SECRET) {
+if (!process.env.JWT_SECRET) {
   console.warn('WARNING: JWT_SECRET is not set in .env — using an insecure development default.');
 }
 
@@ -39,26 +28,6 @@ const allowedOrigins = (process.env.CORS_ORIGIN || '').split(',').map(s => s.tri
 app.use(cors(allowedOrigins.length ? { origin: allowedOrigins } : undefined));
 app.use(express.json({ limit: '1mb' }));
 
-let dbPromise = null;
-
-async function connectToDatabase(uri = process.env.MONGO_URI || MONGO_URI) {
-  if (mongoose.connection.readyState === 1) {
-    return;
-  }
-  if (!dbPromise) {
-    dbPromise = mongoose.connect(uri, { serverSelectionTimeoutMS: 8000 })
-      .then(async () => {
-        console.log('Connected to MongoDB at', sanitizeMongoUri(uri));
-        await seedDatabase();
-      })
-      .catch(err => {
-        dbPromise = null;
-        throw err;
-      });
-  }
-  return dbPromise;
-}
-
 // Health check (public)
 app.get('/api/health', (req, res) => {
   res.json({
@@ -66,20 +35,6 @@ app.get('/api/health', (req, res) => {
     message: 'Hospital Biomedical Waste API is running',
     database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
-});
-
-// Ensure database connection for API requests in serverless environments
-app.use(async (req, res, next) => {
-  try {
-    await connectToDatabase();
-    next();
-  } catch (err) {
-    console.error('MongoDB connection error:', err.message);
-    return res.status(503).json({
-      message: 'Database connection failed. Ensure MONGO_URI is configured.',
-      error: err.message
-    });
-  }
 });
 
 // Routes
@@ -301,7 +256,9 @@ async function seedDatabase() {
 // Connect to MongoDB and start server
 async function start(uri = MONGO_URI) {
   try {
-    await connectToDatabase(uri);
+    await mongoose.connect(uri, { serverSelectionTimeoutMS: 8000 });
+    console.log('Connected to MongoDB at', uri);
+    await seedDatabase();
     const server = app.listen(PORT, () => {
       console.log(`Backend server is running on http://localhost:${PORT}`);
     });
@@ -312,7 +269,6 @@ async function start(uri = MONGO_URI) {
       }
       throw err;
     });
-    return server;
   } catch (err) {
     console.error('MongoDB connection error:', err.message);
     console.error(`Could not reach MongoDB at ${uri}. Start MongoDB (e.g. "docker compose up -d mongo") or run "npm run dev:memory" for a throwaway in-memory database.`);
@@ -324,6 +280,4 @@ if (require.main === module) {
   start();
 }
 
-module.exports = app;
-module.exports.app = app;
-module.exports.start = start;
+module.exports = { app, start };

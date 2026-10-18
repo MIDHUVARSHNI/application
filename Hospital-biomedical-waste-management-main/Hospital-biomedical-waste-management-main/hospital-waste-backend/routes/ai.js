@@ -12,7 +12,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { CATEGORY_BIN_MAP, CATEGORIES, BINS } = require('../utils/compliance');
 
 const router = express.Router();
-const MODEL = () => process.env.GEMINI_MODEL || 'gemini-3.6-flash';
+const MODEL = () => process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 const hasApiKey = () => Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'your_gemini_api_key_here');
 
 // Multer: memory storage, 5 MB limit, image MIME validation

@@ -1,0 +1,68 @@
+name: Deploy Frontend to GitHub Pages
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: |
+          if [ -d "Hospital-biomedical-waste-management-main/hospital-waste-frontend" ]; then
+            cd Hospital-biomedical-waste-management-main/hospital-waste-frontend
+          elif [ -d "hospital-waste-frontend" ]; then
+            cd hospital-waste-frontend
+          fi
+          npm ci || npm install
+
+      - name: Build frontend
+        run: |
+          if [ -d "Hospital-biomedical-waste-management-main/hospital-waste-frontend" ]; then
+            cd Hospital-biomedical-waste-management-main/hospital-waste-frontend
+          elif [ -d "hospital-waste-frontend" ]; then
+            cd hospital-waste-frontend
+          fi
+          npm run build
+          cp dist/index.html dist/404.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Locate dist and upload artifact
+        run: |
+          DIST_PATH=$(find . -type d -name "dist" | grep "hospital-waste-frontend/dist" | head -n 1)
+          echo "DIST_PATH=$DIST_PATH" >> $GITHUB_ENV
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ env.DIST_PATH }}
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -141,19 +141,8 @@ Segregation compliance is computed from the statutory category→bin mapping (`u
 
 Translations live in `src/i18n/translations.js`; add a language by adding an entry to `LANGUAGES` and a dictionary (missing keys fall back to English).
 
-## Security & Environment Configuration
+## Production notes
 
-- **Local Setup**: Create local `.env` files from `.env.example`:
-  ```bash
-  cp hospital-waste-backend/.env.example hospital-waste-backend/.env
-  cp hospital-waste-frontend/.env.example hospital-waste-frontend/.env
-  ```
-- **Git Protection**: `.env` and `.env.*` files are strictly ignored by `.gitignore` across all directories. Never commit `.env` files or real credentials to Git.
-- **Production Deployment (e.g. Vercel)**:
-  - Configure production environment variables in your hosting provider's project dashboard:
-    - `MONGO_URI`: Cloud MongoDB Atlas connection string (`mongodb+srv://...`).
-    - `JWT_SECRET`: High-entropy random string for token signing.
-    - `TZ`: `Asia/Kolkata` (ensures accurate IST daily audit cutoffs).
-    - `GEMINI_API_KEY`: *(Optional)* Required only for photo-based waste scanning.
-  - The frontend automatically routes API requests to `/api` in production builds.
+- Set a strong `JWT_SECRET` and restrict `CORS_ORIGIN`.
+- Serve the frontend `dist/` from any static host and point `VITE_API_URL` at the API.
 - Demo credentials are hidden on the login page in production builds unless `VITE_SHOW_DEMO_CREDENTIALS=true`.

@@ -1,31 +1,19 @@
 # Environment files and secrets
 .env
 .env.*
-.env.local
-.env.production
-.env.development
 !.env.example
 
 # Node.js dependencies
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # Python virtual environments and cache
 venv/
-env/
 __pycache__/
 *.pyc
-*.pyo
 
-# Build and preview files
+# Build files
 dist/
-dist-ssr/
 
-# Local databases & instance files
+# Local databases & build output
 hospital-waste-dashboard/instance/
 *.local
-*.sqlite
-*.sqlite3
-*.db

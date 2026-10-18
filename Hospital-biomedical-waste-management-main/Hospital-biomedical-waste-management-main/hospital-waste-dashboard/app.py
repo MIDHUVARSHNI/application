@@ -7,15 +7,9 @@ import random
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'super-secret-key-for-development')
-# Use DATABASE_URL/SQLALCHEMY_DATABASE_URI if provided; use /tmp on Vercel for writable SQLite
-db_uri = os.environ.get('DATABASE_URL') or os.environ.get('SQLALCHEMY_DATABASE_URI')
-if not db_uri:
-    if os.environ.get('VERCEL'):
-        db_uri = 'sqlite:////tmp/hospital_waste.db'
-    else:
-        db_uri = 'sqlite:///hospital_waste.db'
-app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
+app.config['SECRET_KEY'] = 'super-secret-key-for-development'
+# Use SQLite for development, can be easily changed to MySQL
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///hospital_waste.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -216,17 +210,7 @@ def setup_mock_data():
             db.session.add_all(entries)
             db.session.commit()
 
-def init_db():
-    with app.app_context():
-        try:
-            db.create_all()
-            if not User.query.first():
-                setup_mock_data()
-        except Exception as e:
-            print(f"Database init notice: {e}")
-
-init_db()
-
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(debug=True, port=port)
+    if not os.path.exists('hospital_waste.db'):
+        setup_mock_data()
+    app.run(debug=True, port=5000)
