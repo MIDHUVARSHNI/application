@@ -1,4 +1,20 @@
-const API_BASE = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+import { mockBackend } from './mockBackend';
+
+const getBaseUrl = () => {
+  const custom = localStorage.getItem('custom_api_url');
+  if (custom) return custom.replace(/\/$/, '');
+  return (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+};
+
+let isOfflineModeActive = false;
+export const isOfflineMode = () => isOfflineModeActive;
+export const setCustomApiUrl = (url) => {
+  if (url) {
+    localStorage.setItem('custom_api_url', url);
+  } else {
+    localStorage.removeItem('custom_api_url');
+  }
+};
 
 export const TOKEN_KEY = 'authToken';
 export const USER_KEY = 'currentUser';
@@ -33,7 +49,9 @@ async function request(path, { method = 'GET', body, formData, signal, auth = tr
   const token = session.getToken();
   if (auth && token) headers.Authorization = `Bearer ${token}`;
 
+  const API_BASE = getBaseUrl();
   let res;
+
   try {
     res = await fetch(`${API_BASE}${path}`, {
       method,
@@ -41,9 +59,16 @@ async function request(path, { method = 'GET', body, formData, signal, auth = tr
       body: formData || (body !== undefined ? JSON.stringify(body) : undefined),
       signal
     });
+    isOfflineModeActive = false;
   } catch (err) {
     if (err.name === 'AbortError') throw err;
-    throw Object.assign(new Error('Cannot reach the server. Please check that the backend is running.'), { code: 'NETWORK' });
+    console.warn(`[KMCH API] Real backend at ${API_BASE} not reachable. Falling back to in-browser demo database.`);
+    isOfflineModeActive = true;
+    try {
+      return await mockBackend.handle(path, { method, body, formData });
+    } catch (mockErr) {
+      throw mockErr;
+    }
   }
 
   let data = null;

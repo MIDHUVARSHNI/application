@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: kmch-biowaste-backend
+    env: node
+    plan: free
+    rootDir: Hospital-biomedical-waste-management-main/hospital-waste-backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: "*"

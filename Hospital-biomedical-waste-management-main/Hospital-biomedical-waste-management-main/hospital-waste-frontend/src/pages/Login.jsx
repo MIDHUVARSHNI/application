@@ -130,20 +130,30 @@ const Login = () => {
             </div>
 
             {SHOW_DEMO_HINTS && (
-              <div style={{ 
-                padding: '0.75rem 1rem', 
-                backgroundColor: 'var(--light-blue)', 
-                borderRadius: '8px', 
-                marginBottom: '1.25rem', 
-                fontSize: '0.85rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                color: 'var(--primary-blue)'
-              }}>
+              <div 
+                onClick={() => {
+                  if (hint.user) setUsername(hint.user);
+                  if (hint.pass) setPassword(hint.pass);
+                }}
+                title="Click to auto-fill"
+                style={{ 
+                  padding: '0.75rem 1rem', 
+                  backgroundColor: 'var(--light-blue)', 
+                  borderRadius: '8px', 
+                  marginBottom: '1.25rem', 
+                  fontSize: '0.85rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  color: 'var(--primary-blue)',
+                  cursor: 'pointer',
+                  border: '1px solid rgba(37, 99, 235, 0.2)',
+                  transition: 'background-color 0.15s ease'
+                }}
+              >
                 <Info size={18} style={{ flexShrink: 0 }} />
-                <div>
-                  <strong>{t('login.demoCreds')}:</strong><br />
+                <div style={{ flex: 1 }}>
+                  <strong>{t('login.demoCreds')} (click to auto-fill):</strong><br />
                   {t('login.user')}: <code>{hint.user}</code> | {t('login.pass')}: <code>{hint.pass}</code>
                 </div>
               </div>
